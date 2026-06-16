@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# Safer ORB-SLAM3 build script for laptop development.
-# Default to 2 parallel jobs to avoid RAM crashes on VMs and laptops.
-# Override with: JOBS=4 ./build.sh
-
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 JOBS="${JOBS:-2}"
 CMAKE_POLICY_FLAG="-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
@@ -23,4 +19,20 @@ build_cmake_project() {
   make -j"${JOBS}"
 }
 
-build
+build_cmake_project "${ROOT_DIR}/Thirdparty/DBoW2" "Thirdparty/DBoW2"
+build_cmake_project "${ROOT_DIR}/Thirdparty/g2o" "Thirdparty/g2o"
+build_cmake_project "${ROOT_DIR}/Thirdparty/Sophus" "Thirdparty/Sophus" -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF
+
+echo ""
+echo "Uncompressing vocabulary if needed ..."
+cd "${ROOT_DIR}/Vocabulary"
+if [ ! -f ORBvoc.txt ]; then
+  tar -xf ORBvoc.txt.tar.gz
+fi
+
+build_cmake_project "${ROOT_DIR}" "ORB_SLAM3"
+
+echo ""
+echo "Build completed successfully."
+echo "Library: ${ROOT_DIR}/lib/libORB_SLAM3.so"
+echo "Examples: ${ROOT_DIR}/Examples"
