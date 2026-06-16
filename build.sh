@@ -1,40 +1,26 @@
-echo "Configuring and building Thirdparty/DBoW2 ..."
+#!/usr/bin/env bash
+set -Eeuo pipefail
 
-cd Thirdparty/DBoW2
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j
+# Safer ORB-SLAM3 build script for laptop development.
+# Default to 2 parallel jobs to avoid RAM crashes on VMs and laptops.
+# Override with: JOBS=4 ./build.sh
 
-cd ../../g2o
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+JOBS="${JOBS:-2}"
+CMAKE_POLICY_FLAG="-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
 
-echo "Configuring and building Thirdparty/g2o ..."
+build_cmake_project() {
+  local project_dir="$1"
+  local project_name="$2"
+  shift 2
 
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j
+  echo ""
+  echo "Configuring and building ${project_name} ..."
+  cd "${project_dir}"
+  mkdir -p build
+  cd build
+  cmake .. -DCMAKE_BUILD_TYPE=Release ${CMAKE_POLICY_FLAG} "$@"
+  make -j"${JOBS}"
+}
 
-cd ../../Sophus
-
-echo "Configuring and building Thirdparty/Sophus ..."
-
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j
-
-cd ../../../
-
-echo "Uncompress vocabulary ..."
-
-cd Vocabulary
-tar -xf ORBvoc.txt.tar.gz
-cd ..
-
-echo "Configuring and building ORB_SLAM3 ..."
-
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j4
+build
