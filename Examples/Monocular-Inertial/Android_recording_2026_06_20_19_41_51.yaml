@@ -1,0 +1,56 @@
+%YAML:1.0
+
+File.version: "1.0"
+
+Camera.type: "PinHole"
+
+Camera1.fx: 1391.1306374888527
+Camera1.fy: 1391.492450755347
+Camera1.cx: 969.4650172880657
+Camera1.cy: 547.1097462148103
+Camera1.k1: 0.2664012384766079
+Camera1.k2: -1.3321338096977156
+Camera1.p1: -0.0011194207481915015
+Camera1.p2: 0.0019406324021388362
+Camera1.k3: 2.0937598567395765
+
+Camera.width: 1920
+Camera.height: 1080
+
+Camera.fps: 30
+Camera.RGB: 1
+
+# First-pass phone body/IMU-to-camera rotation from checkerboard PnP +
+# Android rotation_vector calibration. Translation is still set to zero.
+IMU.T_b_c1: !!opencv-matrix
+   rows: 4
+   cols: 4
+   dt: f
+   data: [0.0155192746, -0.9982035722, -0.0578686486, 0.0,
+          -0.9997003567, -0.0143947607, -0.0197986783, 0.0,
+          0.0189301060, 0.0581585698, -0.9981278635, 0.0,
+          0.0, 0.0, 0.0, 1.0]
+
+# Initial phone IMU noise guesses. Tune after Allan variance/static tests.
+IMU.NoiseGyro: 1.7e-4
+IMU.NoiseAcc: 2.0e-3
+IMU.GyroWalk: 1.9e-5
+IMU.AccWalk: 3.0e-3
+IMU.Frequency: 212.3
+
+ORBextractor.nFeatures: 1500
+ORBextractor.scaleFactor: 1.2
+ORBextractor.nLevels: 8
+ORBextractor.iniThFAST: 20
+ORBextractor.minThFAST: 7
+
+Viewer.KeyFrameSize: 0.05
+Viewer.KeyFrameLineWidth: 1.0
+Viewer.GraphLineWidth: 0.9
+Viewer.PointSize: 2.0
+Viewer.CameraSize: 0.08
+Viewer.CameraLineWidth: 3.0
+Viewer.ViewpointX: 0.0
+Viewer.ViewpointY: -0.7
+Viewer.ViewpointZ: -3.5
+Viewer.ViewpointF: 500.0

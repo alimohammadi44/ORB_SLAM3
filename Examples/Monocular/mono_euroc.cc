@@ -20,6 +20,8 @@
 #include<algorithm>
 #include<fstream>
 #include<chrono>
+#include<cstdlib>
+#include<iomanip>
 
 #include<opencv2/core/core.hpp>
 
@@ -29,6 +31,21 @@ using namespace std;
 
 void LoadImages(const string &strImagePath, const string &strPathTimes,
                 vector<string> &vstrImages, vector<double> &vTimeStamps);
+
+static const char* TrackingStateName(int state)
+{
+    switch(state)
+    {
+        case -1: return "SYSTEM_NOT_READY";
+        case 0: return "NO_IMAGES_YET";
+        case 1: return "NOT_INITIALIZED";
+        case 2: return "OK";
+        case 3: return "RECENTLY_LOST";
+        case 4: return "LOST";
+        case 5: return "OK_KLT";
+        default: return "UNKNOWN";
+    }
+}
 
 int main(int argc, char **argv)
 {  
@@ -76,6 +93,13 @@ int main(int argc, char **argv)
     cout << endl << "-------" << endl;
     cout.precision(17);
 
+    ofstream fTrackLog;
+    const char* trackLogPath = getenv("ORBSLAM_TRACKING_LOG");
+    if(trackLogPath && string(trackLogPath).size() > 0)
+    {
+        fTrackLog.open(trackLogPath);
+        fTrackLog << "sequence,frame_index,timestamp_ns,time_s,tracking_state,state_name,failed\n";
+    }
 
     int fps = 20;
     float dT = 1.f/fps;
@@ -88,6 +112,7 @@ int main(int argc, char **argv)
 
     for (seq = 0; seq<num_seq; seq++)
     {
+        const double t0 = vTimestampsCam[seq].empty() ? 0.0 : vTimestampsCam[seq][0];
 
         // Main loop
         cv::Mat im;
@@ -138,6 +163,19 @@ int main(int argc, char **argv)
             // Pass the image to the SLAM system
             // cout << "tframe = " << tframe << endl;
             SLAM.TrackMonocular(im,tframe); // TODO change to monocular_inertial
+
+            if(fTrackLog.is_open())
+            {
+                const int state = SLAM.GetTrackingState();
+                const bool failed = !(state == 2 || state == 5);
+                fTrackLog << seq << ","
+                          << ni << ","
+                          << fixed << setprecision(0) << (tframe * 1e9) << ","
+                          << setprecision(9) << (tframe - t0) << ","
+                          << state << ","
+                          << TrackingStateName(state) << ","
+                          << (failed ? 1 : 0) << "\n";
+            }
 
     #ifdef COMPILEDWITHC11
             std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
